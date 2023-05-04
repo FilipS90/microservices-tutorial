@@ -1,15 +1,16 @@
 package com.filips90.inventoryservice.dto;
 
+import java.math.BigDecimal;
+
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class InventoryResponse {
+public class OrderLineItemsDto {
 	private String skuCode;
-	private int quantity;
+	private BigDecimal price;
+	private Integer quantity;
 }

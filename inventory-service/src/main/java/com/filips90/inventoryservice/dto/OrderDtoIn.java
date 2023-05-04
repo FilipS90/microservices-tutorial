@@ -1,15 +1,14 @@
 package com.filips90.inventoryservice.dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-public class InventoryResponse {
-	private String skuCode;
-	private int quantity;
+public class OrderDtoIn {
+	private List<OrderLineItemsDto> orderLineItemsDto;
 }

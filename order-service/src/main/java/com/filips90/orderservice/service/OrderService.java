@@ -1,9 +1,9 @@
 package com.filips90.orderservice.service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,6 +16,7 @@ import com.filips90.orderservice.model.OrderLineItems;
 import com.filips90.orderservice.repository.OrderRepository;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -36,37 +37,33 @@ public class OrderService {
 			.toList();
 		order.setOrderLineItems(items);
 		
-		List<String> skuCodes = order.getOrderLineItems()
-			.stream()
-			.map(OrderLineItems::getSkuCode)
-			.toList();
-		
-		InventoryResponse[] itemsInventory = checkItemsAvailability(skuCodes);
+		InventoryResponse[] inventoryStatus = checkItemsAvailability(dto);
 		boolean allProductsinStock = 
-				Arrays.stream(itemsInventory).allMatch(InventoryResponse::isInStock);
+				inventoryStatus.length == dto.getOrderLineItemsDto().size();
 		
 		if(!allProductsinStock) {
-			throw new Exception("Not all items are in stock");
+			throw new Exception("Not enough items on stock");
 		}
-		
+
 		repository.save(order);
-		
-		return decrementItemInStock(skuCodes);
+		return decrementItemInStock(dto);
 	}
 	
-	private InventoryResponse[] checkItemsAvailability(List<String> skuCodes) {
-		return webClient.get()
-				.uri("http://localhost:8082/api/inventory", 
-						uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
+	private InventoryResponse[] checkItemsAvailability(OrderDtoIn dto) {
+		return webClient.post()
+				.uri("http://localhost:8082/api/inventory")
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Mono.just(dto), OrderDtoIn.class)
 				.retrieve()
 				.bodyToMono(InventoryResponse[].class)
 				.block();
 	}
 	
-	private InventoryResponse[] decrementItemInStock(List<String> skuCodes) {
-		return webClient.put()
-				.uri("http://localhost:8082/api/inventory",
-						uriBuilder -> uriBuilder.queryParam("skuCode", skuCodes).build())
+	private InventoryResponse[] decrementItemInStock(OrderDtoIn dto) {
+		return webClient.post()
+				.uri("http://localhost:8082/api/inventory/stockDecrease")
+				.contentType(MediaType.APPLICATION_JSON)
+				.body(Mono.just(dto), OrderDtoIn.class)
 				.retrieve()
 				.bodyToMono(InventoryResponse[].class)
 				.block();

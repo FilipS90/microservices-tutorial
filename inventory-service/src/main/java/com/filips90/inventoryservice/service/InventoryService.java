@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.filips90.inventoryservice.dto.InventoryResponse;
-import com.filips90.inventoryservice.model.Inventory;
+import com.filips90.inventoryservice.dto.OrderDtoIn;
 import com.filips90.inventoryservice.repository.InventoryRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -17,29 +17,31 @@ public class InventoryService {
 	
 	private final InventoryRepository repository;
 	
-	@Transactional(readOnly = true)
-	public List<InventoryResponse> isInStock(String[] skuCode) {
-		return repository.findBySkuCodeIn(skuCode).stream()
-				.map(i -> InventoryResponse.builder()
-							.skuCode(i.getSkuCode())
-							.isInStock(i.getQuantity() > 0)
-							.build())
+	@Transactional
+	public List<InventoryResponse> isInStock(OrderDtoIn order) {
+		return repository.findAll()
+				.stream()
+				.filter(inventory -> order.getOrderLineItemsDto()
+						.stream()
+						.anyMatch(orderItem -> orderItem.getSkuCode().equals(inventory.getSkuCode()) 
+								&& inventory.getQuantity() >= orderItem.getQuantity()))
+				.map(e -> InventoryResponse.builder()
+						.skuCode(e.getSkuCode())
+						.quantity(e.getQuantity()).build())
 				.toList();
 	}
 	
 	@Transactional
-	public List<InventoryResponse> removeFromStock(String[] skuCode) {
-		var inventories = repository.findBySkuCodeIn(skuCode);
-		
-		var changedInventories = inventories.stream()
-			.map(Inventory::decrementQuantity).toList();
-		
-		changedInventories.forEach(e -> repository.save(e));
-		
-		return changedInventories.stream().map(i -> InventoryResponse.builder()
-				.skuCode(i.getSkuCode())
-				.isInStock(i.getQuantity() > 0)
-				.build())
-				.toList();
+	public List<InventoryResponse> decreaseStock(OrderDtoIn order) {
+		return order.getOrderLineItemsDto()
+				.stream()
+				.map(e -> {
+					var i = repository.findBySkuCode(e.getSkuCode());
+					i.decrementQuantity(e.getQuantity());
+					repository.save(i);
+					var iResp = InventoryResponse.builder().skuCode(i.getSkuCode())
+							.quantity(i.getQuantity()).build();
+					return iResp;
+				}).toList();
 	}
 }

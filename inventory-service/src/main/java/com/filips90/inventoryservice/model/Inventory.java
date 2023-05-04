@@ -6,6 +6,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class Inventory {
 	
 	@Id
@@ -24,8 +26,7 @@ public class Inventory {
 	private String skuCode;
 	private int quantity;
 	
-	public Inventory decrementQuantity() {
-		setQuantity(getQuantity() - 1);
-		return this;
+	public synchronized void decrementQuantity(int quantityToDecrease) {
+		setQuantity(getQuantity() - quantityToDecrease);
 	}
 }
