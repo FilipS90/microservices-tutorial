@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
 public class OrderService {
 	
 	private final OrderRepository repository;
-	private final WebClient webClient;
+	private final WebClient.Builder webClientBuilder;
 	
 	
 	public InventoryResponse[] placeOrder(OrderDtoIn dto) throws Exception {
@@ -50,8 +50,8 @@ public class OrderService {
 	}
 	
 	private InventoryResponse[] checkItemsAvailability(OrderDtoIn dto) {
-		return webClient.post()
-				.uri("http://localhost:8082/api/inventory")
+		return webClientBuilder.build().post()
+				.uri("http://inventory-service/api/inventory")
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(Mono.just(dto), OrderDtoIn.class)
 				.retrieve()
@@ -60,8 +60,8 @@ public class OrderService {
 	}
 	
 	private InventoryResponse[] decrementItemInStock(OrderDtoIn dto) {
-		return webClient.post()
-				.uri("http://localhost:8082/api/inventory/stockDecrease")
+		return webClientBuilder.build().post()
+				.uri("http://inventory-service/api/inventory/stockDecrease")
 				.contentType(MediaType.APPLICATION_JSON)
 				.body(Mono.just(dto), OrderDtoIn.class)
 				.retrieve()
