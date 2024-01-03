@@ -9,5 +9,7 @@ import com.filips90.inventoryservice.model.Inventory;
 public interface InventoryRepository extends JpaRepository<Inventory, Long> {
 	List<Inventory> findBySkuCodeIn(String[] skuCode);
 	
+	List<Inventory> findAll();
+	
 	Inventory findBySkuCode(String skuCode);
 }

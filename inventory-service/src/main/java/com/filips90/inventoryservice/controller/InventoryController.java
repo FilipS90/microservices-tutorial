@@ -3,6 +3,7 @@ package com.filips90.inventoryservice.controller;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,5 +35,11 @@ public class InventoryController {
 	@ResponseStatus(HttpStatus.OK)
 	public List<InventoryResponse> decreaseStock(@RequestBody OrderDtoIn order) {
 		return service.decreaseStock(order);
+	}
+	
+	@GetMapping
+	@ResponseStatus(HttpStatus.OK)
+	public List<InventoryResponse> getStock() {
+		return service.getStock();
 	}
 }

@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.filips90.inventoryservice.dto.InventoryResponse;
 import com.filips90.inventoryservice.dto.OrderDtoIn;
+import com.filips90.inventoryservice.mapper.InventoryMapper;
 import com.filips90.inventoryservice.repository.InventoryRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -16,9 +17,11 @@ import lombok.RequiredArgsConstructor;
 public class InventoryService {
 	
 	private final InventoryRepository repository;
+	private final InventoryMapper inventoryMapper;
 	
 	@Transactional
 	public List<InventoryResponse> isInStock(OrderDtoIn order) {
+		// TODO REFACTOR THIS
 		return repository.findAll()
 				.stream()
 				.filter(inventory -> order.getOrderLineItemsDto()
@@ -43,5 +46,11 @@ public class InventoryService {
 							.quantity(i.getQuantity()).build();
 					return iResp;
 				}).toList();
+	}
+	
+	public List<InventoryResponse> getStock(){
+		return repository.findAll().stream()
+				.map(i -> inventoryMapper.mapToInventoryResponse(i))
+				.toList();
 	}
 }
